@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Distribution Simulator</title>
+    <style>
+        input{
+            width:60px;
+        }
+        td.count,td.percent{
+            display: inline-block;
+            min-width: 30px;
+        }
+        meter {
+            min-width: 50vw;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Dice Distribution Simulator</h1>
+        <label for="rolls" >Rolls:</label>
+        <input id="rolls" type="number" min="0" max="1000000" step="1000" value="1000">
+        <label for="dice" >Dice / roll:</label>
+        <input id="dice" type="number" min="1" value="2">  
+        <label for="sides">Sides / die:</label>
+        <input id="sides" type="number" min="2" value="6">
+        
+        <button id="rollDice">Roll Dice!</button>
+    </div>
+    <div>
+        <p>Total rolled: <span class="total"></span></p>
+    </div>
+
+    <table>
+        <!-- Sample Row -->
+        <!-- <tr>
+            <td class="number">1:</td>
+            <td>
+                <meter data-val=1
+                min="0" max="10000" low="3300" high="6600"
+                value="7951"></meter>
+            </td>
+            <td class="count">7951</td>
+            <td class="percent">(79.5%)</td>
+        </tr> -->
+    </table>
+    
+    <script src="day6_dicedistribution.js"></script>
+    <script>
+        //JS code to handle the GUI
+        function displayDistribution(frequency, rolls, dice, sides){
+            //where frequency is a number[]
+            
+            let actualTotal = 0;
+            let maxCount = 0;
+            for (const count of frequency){
+                actualTotal += count;
+                if (count > maxCount)
+                    maxCount = count;
+            }
+
+            document.querySelector("span.total").textContent = (actualTotal === rolls) ? rolls : `Only ${actualTotal} (should be ${rolls} - uhoh!)`;
+
+            //For comparison against the found frequencies: 
+            let expectedForUniform = (rolls / ((sides - 1) * dice + 1));
+
+            //Clear the contents of the table;
+            let table = document.querySelector("table");
+            table.replaceChildren();
+            //For each frequency (starting at index 1), add a tr element to the table
+            for(let index = 1; index < frequency.length; index++){
+                let count = frequency[index]
+                let percent = (count/rolls * 100);
+                                        
+                //Each element corresponds to a <tr> HTML element
+                let tr = document.createElement("tr");
+                //.innerHTML is a quick and dirty way to fill a HTML element with complex content:
+                tr.innerHTML=`
+                    <td class="number">${index}:</td>
+                    <td>
+                        <meter data-val=${index}
+                        min="0" max="${maxCount}" 
+                        low="${expectedForUniform / 2}" high="${expectedForUniform * 1.5}" optimum="${rolls}"
+                        value="${count}"></meter>
+                    </td>
+                    <td class="count">${count}</td>
+                    <td class="percent">(${percent.toFixed(1)}%)</td>
+                `
+                table.appendChild(tr);
+            }
+        }
+
+        document.querySelector("button#rollDice").addEventListener("click", function(){
+            let rolls = Number(document.querySelector("input#rolls").value);
+            let dice = Number(document.querySelector("input#dice").value);
+            let sides = Number(document.querySelector("input#sides").value);
+            let frequency = simulateDiceRolls(rolls,dice, sides);
+            displayDistribution(frequency,rolls,dice, sides);
+        })
+
+
+    </script>
+
+</body>
+</html>
